@@ -10,8 +10,7 @@ router.post("/register",[
     body("password").isLength({min: 6}).withMessage("Password must be at least 6 characters long.")
 ], registerUser);
 router.post("/login", [
-    body("email").isEmail().withMessage("Invalid Email"),
-    body("password")
-])
+    body("email").isEmail().withMessage("Invalid Email")
+], loginUser)
 
 export default router;
