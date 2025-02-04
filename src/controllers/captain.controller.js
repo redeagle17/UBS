@@ -1,12 +1,10 @@
-import { UserModel } from "../models/user.model.js";
+import { CaptainModel } from "../models/captain.model.js";
 import { blacklistModel } from "../models/blacklistToken.model.js";
-import { createUser, existingUser } from "../services/user.service.js";
 import { validationResult } from "express-validator";
+import { createCaptain, existingCaptain } from "../services/captain.service.js";
 
-
-const registerUser = async (req, res, next) => {
+const registerCaptain = async (req, res, next) => {
     try {
-
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             return res.status(400).json({
@@ -14,35 +12,37 @@ const registerUser = async (req, res, next) => {
             })
         }
 
-        const {fullName, email, password} = req.body;
+        const {fullName, email, password, vehicle} = req.body;
 
-        const isUserExist = await UserModel.findOne({email});
-        if(isUserExist){
+        const isCaptainExist = await CaptainModel.findOne({email});
+        if(isCaptainExist){
             return res.status(400).json({
                 success: false,
-                message: "User already exist!"
+                message: "Captain already exist!"
             })
         }
 
-        const hashedPassword = await UserModel.hashPassword(password)
-        const user = await createUser(fullName.firstName, fullName.lastName, email, hashedPassword)
+        const hashedPassword = await CaptainModel.hashPassword(password)
+        const user = await createCaptain(fullName.firstName, fullName.lastName, email, hashedPassword,vehicle.color, vehicle.plate, vehicle.capacity, vehicle.vehicleType)
         const token = user.generateAuthToken()
 
         return res.status(201).json({
             success: true,
-            message: "User registered successfully",
+            message: "Captain registered successfully",
             token,
             user
         })
+
     } catch (error) {
         return res.status(error.statusCode || 500).json({
             success: false,
-            message: error.message || "Internal Server Error"
-        });
+            message: error.message || "Interval Server error"
+        })
     }
 }
 
-const loginUser = async (req, res, next) => {
+
+const loginCaptain = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if(!errors.isEmpty()){
@@ -52,7 +52,7 @@ const loginUser = async (req, res, next) => {
         }
         const {email, password} = req.body;
         
-        const user = await existingUser(email);
+        const user = await existingCaptain(email);
 
         const isPasswordCorrect = await user.comparePassword(password);
         if(!isPasswordCorrect){
@@ -67,7 +67,7 @@ const loginUser = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            message: "User logged in successfully",
+            message: "Captain logged in successfully",
             token,
             user
         })
@@ -79,23 +79,5 @@ const loginUser = async (req, res, next) => {
     }
 }
 
-const getUserProfile = async (req, res, next) => {
-    return res.status(200).json({
-        success: true,
-        user: req.user
-    })
-}
 
-const logoutUser = async (req, res, next) => {
-    
-    res.clearCookie("token");
-    const token = req.cookies.token || req.headers.authorization.split(' ')[1];
-    await blacklistModel.create({ token });
-
-    return res.status(200).json({
-        success: true,
-        message: "Logged Out"
-    });
-}
-
-export { registerUser, loginUser, getUserProfile, logoutUser };
+export { registerCaptain, loginCaptain };
