@@ -79,5 +79,23 @@ const loginCaptain = async (req, res, next) => {
     }
 }
 
+const getCaptainProfile = async (req, res, next) => {
+    return res.status(200).json({
+        success: true,
+        captain: req.captain
+    })
+}
 
-export { registerCaptain, loginCaptain };
+const logoutCaptain = async (req, res, next) => {
+    
+    res.clearCookie("token");
+    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1]
+    await blacklistModel.create({ token });
+
+    return res.status(200).json({
+        success: true,
+        message: "Logged Out"
+    });
+}
+
+export { registerCaptain, loginCaptain, getCaptainProfile, logoutCaptain };
